@@ -5,17 +5,13 @@ from typing import *
 from html.parser import HTMLParser
 import sys
 from PyQt5.QtWidgets import *
-from PyQt5.QtGui import QIcon, QImage, QPixmap
-from PyQt5.QtCore import QByteArray, pyqtSlot
+from PyQt5.QtGui import QPixmap
+
 from PIL import Image
 from PIL.ImageQt import ImageQt
-from io import BytesIO, StringIO
+from io import BytesIO
 
 # https://stackoverflow.com/questions/16627227/http-error-403-in-python-3-web-scraping
-stuffRequest = Request("https://nhentai.net/", headers={"User-Agent": "Mozilla/5.0"})
-
-
-stuff = urlopen(stuffRequest).read()
 
 
 # https://stackoverflow.com/questions/3276040/how-can-i-use-the-python-htmlparser-library-to-extract-data-from-a-specific-div
@@ -76,21 +72,21 @@ class Browser(QDialog):
         # init ui
 
         self.setWindowTitle("New posts from nhentai owo")
-        self.setGeometry(100, 100, 400, 400)
+        self.setGeometry(100, 100, 1200, 800)
 
         # https://stackoverflow.com/questions/16627227/http-error-403-in-python-3-web-scraping
         pageRequest = Request(
             "https://nhentai.net/", headers={"User-Agent": "Mozilla/5.0"}
         )
-        result = urlopen(stuffRequest).read()
+        result = urlopen(pageRequest).read()
 
         parser = LinksParser()
-        parser.feed(str(result))
+        parser.feed(str(result, "utf8"))
 
         self.titles = parser.postTitles
         self.images = imageFromLinks(parser.postImages)
 
-        box = QGroupBox("Grid")
+        box = QGroupBox()
 
         layout = QGridLayout()
 
@@ -100,7 +96,12 @@ class Browser(QDialog):
         box.setLayout(layout)
 
         windowLayout = QVBoxLayout()
-        windowLayout.addWidget(box)
+        # windowLayout.addWidget(box)
+
+        scroll = QScrollArea()
+        scroll.setWidget(box)
+        scroll.setWidgetResizable(True)
+        windowLayout.addWidget(scroll)
         self.setLayout(windowLayout)
         self.show()
 
@@ -111,10 +112,12 @@ class TitledImage(QWidget):
         layout = QVBoxLayout()
 
         imageLabel = QLabel()
-        imageLabel.setPixmap(QPixmap.fromImage(imageData))
+        imageLabel.setPixmap(QPixmap.fromImage(imageData).scaledToWidth(200))
         layout.addWidget(imageLabel)
-        layout.addWidget(QLabel(title))
-
+        textLabel = QLabel(title)
+        textLabel.setMaximumWidth(200)
+        textLabel.setWordWrap(True)
+        layout.addWidget(textLabel)
         self.setLayout(layout)
 
 
