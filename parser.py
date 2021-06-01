@@ -1,11 +1,15 @@
+from os import link
+from urllib import request
 from urllib.request import *
 from typing import *
 from html.parser import HTMLParser
 import sys
 from PyQt5.QtWidgets import *
-from PyQt5.QtGui import QIcon
-from PyQt5.QtCore import pyqtSlot
-
+from PyQt5.QtGui import QIcon, QImage, QPixmap
+from PyQt5.QtCore import QByteArray, pyqtSlot
+from PIL import Image
+from PIL.ImageQt import ImageQt
+from io import BytesIO, StringIO
 
 # https://stackoverflow.com/questions/16627227/http-error-403-in-python-3-web-scraping
 stuffRequest = Request("https://nhentai.net/", headers={"User-Agent": "Mozilla/5.0"})
@@ -84,19 +88,64 @@ class Browser(QDialog):
         parser.feed(str(result))
 
         self.titles = parser.postTitles
-        self.images = parser.postImages
+        self.images = imageFromLinks(parser.postImages)
 
-    def imageFromLinks(links):
-        return
+        box = QGroupBox("Grid")
+
+        layout = QGridLayout()
+
+        for i in range(len(self.titles)):
+            layout.addWidget(TitledImage(self.images[i], self.titles[i]), i // 5, i % 5)
+
+        box.setLayout(layout)
+
+        windowLayout = QVBoxLayout()
+        windowLayout.addWidget(box)
+        self.setLayout(windowLayout)
+        self.show()
 
 
-parser = LinksParser()
+class TitledImage(QWidget):
+    def __init__(self, imageData, title):
+        super().__init__()
+        layout = QVBoxLayout()
 
-parser.feed(str(stuff))
-for line in parser.postTitles:
-    print(line)
+        imageLabel = QLabel()
+        imageLabel.setPixmap(QPixmap.fromImage(imageData))
+        layout.addWidget(imageLabel)
+        layout.addWidget(QLabel(title))
 
-for line in parser.postImages:
-    print(line)
+        self.setLayout(layout)
 
-print(f"len of titles {len(parser.postTitles)}, len of images {len(parser.postImages)}")
+
+def imageFromLinks(links):
+    return [
+        ImageQt(
+            Image.open(
+                BytesIO(
+                    request.urlopen(
+                        Request(l, headers={"User-Agent": "Mozilla/5.0"})
+                    ).read()
+                )
+            )
+        )
+        for l in links
+    ]
+
+
+# parser = LinksParser()
+
+# parser.feed(str(stuff))
+# for line in parser.postTitles:
+#     print(line)
+
+# for line in imageFromLinks(parser.postImages):
+#     print(line)
+
+# print(f"len of titles {len(parser.postTitles)}, len of images {len(parser.postImages)}")
+
+
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    ex = Browser()
+    sys.exit(app.exec_())
