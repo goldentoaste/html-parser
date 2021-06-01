@@ -1,9 +1,8 @@
-from os import link
+
+import sys
 from urllib import request
 from urllib.request import *
-from typing import *
 from html.parser import HTMLParser
-import sys
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import QPixmap
 
@@ -55,8 +54,8 @@ class LinksParser(HTMLParser):
             self.postTitles.append(data)
 
     def handle_startendtag(
-        self, tag: str, attrs: List[Tuple[str, Optional[str]]]
-    ) -> None:
+        self, tag, attrs
+    ):
         if self.inGallery and not self.imageAdded:
             if self.inNewPosts:
                 for name, value in attrs:
