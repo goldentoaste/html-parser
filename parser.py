@@ -1,4 +1,4 @@
-
+from os import link
 import sys
 from urllib import request
 from urllib.request import *
@@ -53,9 +53,7 @@ class LinksParser(HTMLParser):
         if self.inGallery and self.inNewPosts:
             self.postTitles.append(data)
 
-    def handle_startendtag(
-        self, tag, attrs
-    ):
+    def handle_startendtag(self, tag, attrs):
         if self.inGallery and not self.imageAdded:
             if self.inNewPosts:
                 for name, value in attrs:
@@ -121,18 +119,22 @@ class TitledImage(QWidget):
 
 
 def imageFromLinks(links):
-    return [
-        ImageQt(
-            Image.open(
-                BytesIO(
-                    request.urlopen(
-                        Request(l, headers={"User-Agent": "Mozilla/5.0"})
-                    ).read()
+    output = []
+
+    for l in links:
+        print("loading image from: ", l)
+        output.append(
+            ImageQt(
+                Image.open(
+                    BytesIO(
+                        request.urlopen(
+                            Request(l, headers={"User-Agent": "Mozilla/5.0"})
+                        ).read()
+                    )
                 )
             )
         )
-        for l in links
-    ]
+    return output
 
 
 # parser = LinksParser()
