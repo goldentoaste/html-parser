@@ -1,4 +1,3 @@
-from os import link
 import sys
 from urllib import request
 from urllib.request import *
@@ -59,10 +58,11 @@ class LinksParser(HTMLParser):
                 for name, value in attrs:
                     if name == "data-src":
                         self.postImages.append(value)
+                        break
                 self.imageAdded = True
 
 
-class Browser(QDialog):
+class Browser(QWidget):
     def __init__(self) -> None:
         super().__init__()
 
@@ -134,6 +134,7 @@ def imageFromLinks(links):
                 )
             )
         )
+
     return output
 
 
